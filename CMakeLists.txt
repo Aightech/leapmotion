@@ -112,7 +112,26 @@ else ()
     endif()
   endif()
 
-  
+
+  set(ULTRALEAP_PATH_ROOT "")
+
+  find_package(LeapSDK
+      5
+      REQUIRED
+      PATHS
+      "${ULTRALEAP_PATH_ROOT}")
+  if (LeapSDK_FOUND)
+    message("${PREFIX_MSG}-- ${ColourBold}${Esc}[${color_code}m${EXEC_NAME}${ColourReset}: Adding ${ColourBold}LeapSDK${ColourReset} library")
+    list(APPEND EXTRA_LIBS "LeapSDK::LeapC")
+    list(APPEND EXTRA_INCLUDES "${LeapSDK_INCLUDE_DIRS}")
+  else()
+    message("${PREFIX_MSG}-- ${ColourBold}${Esc}[${color_code}m${EXEC_NAME}${ColourReset}: ${ColourBold}${Red}LeapSDK${ColourReset} library not found")
+  endif()
+
+  if (UNIX)    
+      find_package(Threads REQUIRED)    
+  endif (UNIX)
+
 
 
   ###### Search for Subdirectories/Libraries ######
