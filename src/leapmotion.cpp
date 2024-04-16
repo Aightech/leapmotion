@@ -1,4 +1,4 @@
-#include "leapNova.hpp"
+#include "leapmotion.hpp"
 
 /* Copyright (C) 2012-2017 Ultraleap Limited. All rights reserved.
  *

@@ -132,6 +132,17 @@ else ()
       find_package(Threads REQUIRED)    
   endif (UNIX)
 
+  ###### SFML libraries ######
+  if(1)
+    find_package(SFML REQUIRED COMPONENTS graphics window system )
+    if (SFML_FOUND)
+      list(APPEND EXTRA_LIBS "sfml-graphics" "sfml-window" "sfml-system")
+      message("${PREFIX_MSG}-- ${ColourBold}${Esc}[${color_code}m${EXEC_NAME}${ColourReset} SFML libraries found")
+    else ()
+      message("${PREFIX_MSG}-- ${ColourBold}${Esc}[${color_code}m${EXEC_NAME}${ColourReset} SFML libraries not found")
+    endif (SFML_FOUND)
+  endif()
+
 
 
   ###### Search for Subdirectories/Libraries ######

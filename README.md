@@ -1,12 +1,14 @@
-# leapNova
+# leapmotion
 
 Simple library to ..............
 
 # Building source code
 
+https://docs.ultraleap.com/linux/
+
 To build the project run:
 ```bash
-cd leapNova
+cd leapmotion
 mkdir build && cd build
 cmake .. && make
 ```
@@ -15,7 +17,7 @@ cmake .. && make
 
 When the project have been built, you can run:
 ```bash
-./leapNova -h
+./leapmotion -h
 ```
 to get the demonstration app usage.
 
