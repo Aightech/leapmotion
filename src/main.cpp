@@ -62,14 +62,18 @@ main(int argc, char **argv)
             for(uint32_t h = 0; h < frame->nHands; h++)
             {
                 hand = &frame->pHands[h];
-                if(hand->type == eLeapHandType_Right)
+                if(hand->type == eLeapHandType_Left)
                 {
                     justGrabbed = !isGrabbing && (hand->grab_strength > 0.8);
                     isGrabbing = hand->grab_strength > 0.8;
                     current[0] = hand->palm.position.x;
                     current[1] = hand->palm.position.y;
                     current[2] = hand->palm.position.z;
-                    //std::cout << "x: " << current[0] - origin[0] << " y: " << current[1] - origin[1] << " z: " << current[2] - origin[2] << std::endl;
+                    printf("rx: %6.3f ry: %6.3f rz: %6.3f x: %6.3f y: %6.3f z: %6.3f\n",
+                           hand->palm.orientation.x, hand->palm.orientation.y, hand->palm.orientation.z,
+                           current[0] - origin[0], current[1] - origin[1], current[2] - origin[2]);
+                    //std::cout << "rx: " <<  hand->palm.orientation.x << " ry: " <<  hand->palm.orientation.y << " rz: " <<  hand->palm.orientation.z <<
+                    // "x: " << current[0] - origin[0] << " y: " << current[1] - origin[1] << " z: " << current[2] - origin[2] << std::endl;
                 }
             }
         }
