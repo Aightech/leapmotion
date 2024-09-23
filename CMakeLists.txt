@@ -58,7 +58,7 @@ project(${EXEC_NAME} VERSION ${PROJECT_VERSION})
 
 ###### LIBRARY NAME ######
 set(LIB_NAME ${EXEC_NAME}.${PROJECT_VERSION})
-
+ 
 if(NOT DEFINED DIR_DEPTH)
   set(DIR_DEPTH 0)
 else ()
@@ -85,13 +85,13 @@ else ()
 
   ###### Get the sources and headers ######
   ###### Exec main src file ######
-  set(MAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
+  file(GLOB MAIN_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/main*") 
   ###### Exec-only header file ######
   set(EXTRA_HEADERS "include/gnuplot-iostream.h")
 
   ###### Library src and headezr files (everything else) ######
   file(GLOB LIB_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp" "src/*.c")
-  list(REMOVE_ITEM LIB_SRCS ${MAIN_FILE})
+  list(REMOVE_ITEM LIB_SRCS ${MAIN_FILES})
   file(GLOB LIB_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h" "include/*.hpp")
   list(REMOVE_ITEM LIB_HEADERS ${EXTRA_HEADERS})
 
@@ -112,7 +112,7 @@ else ()
     endif()
   endif()
 
-
+  
   set(ULTRALEAP_PATH_ROOT "")
 
   find_package(LeapSDK
@@ -128,21 +128,21 @@ else ()
     message("${PREFIX_MSG}-- ${ColourBold}${Esc}[${color_code}m${EXEC_NAME}${ColourReset}: ${ColourBold}${Red}LeapSDK${ColourReset} library not found")
   endif()
 
-  if (UNIX)    
-      find_package(Threads REQUIRED)    
-  endif (UNIX)
+  find_package(SFML REQUIRED COMPONENTS graphics window system)
+  if (SFML_FOUND)
+    list(APPEND EXTRA_LIBS "sfml-graphics" "sfml-window" "sfml-system")
+  else ()
+    message("Couldn't find SFML library")
+  endif (SFML_FOUND)
 
-  ###### SFML libraries ######
-  if(1)
-    find_package(SFML REQUIRED COMPONENTS graphics window system )
-    if (SFML_FOUND)
-      list(APPEND EXTRA_LIBS "sfml-graphics" "sfml-window" "sfml-system")
-      message("${PREFIX_MSG}-- ${ColourBold}${Esc}[${color_code}m${EXEC_NAME}${ColourReset} SFML libraries found")
-    else ()
-      message("${PREFIX_MSG}-- ${ColourBold}${Esc}[${color_code}m${EXEC_NAME}${ColourReset} SFML libraries not found")
-    endif (SFML_FOUND)
-  endif()
-
+  find_package(OpenCV REQUIRED)
+  if (OpenCV_FOUND)
+    list(APPEND EXTRA_LIBS ${OpenCV_LIBS})
+    list(APPEND EXTRA_INCLUDES ${OpenCV_INCLUDE_DIRS})
+    message("-- Opencv library Found")
+  else ()
+    message("Couldn't find Opencv library")
+  endif (OpenCV_FOUND)
 
 
   ###### Search for Subdirectories/Libraries ######
@@ -152,19 +152,32 @@ else ()
       OUTPUT_VARIABLE SUBMODULES_LIST)
     subdirlist(LIBS "${CMAKE_CURRENT_SOURCE_DIR}/lib/")
     foreach(subdir ${LIBS})
+      #check if the library is a unused library
+      set(IS_UNUSED 0)
+      foreach(lib ${UNUSED_LIBS})
+        string(FIND "${lib}" "${subdir}" FOUND)
+        if(${FOUND} GREATER -1)
+          set(IS_UNUSED 1)
+        endif()
+      endforeach()
+      if(IS_UNUSED EQUAL 1)
+        message("${PREFIX_MSG}-- ${ColourBold}${Esc}[${color_code}m${EXEC_NAME}${ColourReset}: ${ColourBold}${Esc}[${color_code2}m${subdir}${ColourReset} is an unused library")
+        continue()
+      endif()  
+
       string(FIND "${SUBMODULES_LIST}" "${subdir}" FOUND)
       if(${FOUND} GREATER -1 AND NO_CONNECTION EQUAL 1 )
-	#git submodules init
-	execute_process(COMMAND git submodule update --remote --merge --init -- "lib/${subdir}"
-	  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} OUTPUT_VARIABLE OUTPUT)
+        #git submodules init
+        execute_process(COMMAND git submodule update --remote --merge --init -- "lib/${subdir}"
+          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} OUTPUT_VARIABLE OUTPUT)
       endif()
       subproject_version("lib/${subdir}" subdir_version)#get the version
       message("${PREFIX_MSG}-- ${ColourBold}${Esc}[${color_code}m${EXEC_NAME}${ColourReset}: Adding library ${ColourBold}${Esc}[${color_code2}m${subdir}${ColourReset} version: ${ColourBold}${subdir_version}${ColourReset}")
       add_subdirectory("lib/${subdir}")
       
-      get_directory_property(libname
-	DIRECTORY "lib/${subdir}"
-	DEFINITION LIB_NAME)
+      get_directory_property(libname 
+      DIRECTORY "lib/${subdir}"
+	    DEFINITION LIB_NAME)
       list(APPEND EXTRA_LIBS "${libname}")
       link_directories(${CMAKE_SOURCE_DIR}/lib/${subdir}/bin)    
     endforeach()
@@ -177,19 +190,32 @@ else ()
       OUTPUT_VARIABLE SUBMODULES_LIST)
     subdirlist(LIBS "${CMAKE_CURRENT_SOURCE_DIR}/tool_lib/")
     foreach(subdir ${LIBS})
+      #check if the library is a unused library
+      set(IS_UNUSED 0)
+      foreach(lib ${UNUSED_LIBS})
+        string(FIND "${lib}" "${subdir}" FOUND)
+        if(${FOUND} GREATER -1)
+          set(IS_UNUSED 1)
+        endif()
+      endforeach()
+      if(IS_UNUSED EQUAL 1)
+        message("${PREFIX_MSG}-- ${ColourBold}${Esc}[${color_code}m${EXEC_NAME}${ColourReset}: ${ColourBold}${Esc}[${color_code2}m${subdir}${ColourReset} is an unused library")
+        continue()
+      endif()  
+
       string(FIND "${SUBMODULES_LIST}" "${subdir}" FOUND)
       if(${FOUND} GREATER -1 AND NO_CONNECTION EQUAL 1 )
-	#git submodules init
-	execute_process(COMMAND git submodule update --remote --merge --init -- "tool_lib/${subdir}"
-	  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} OUTPUT_VARIABLE OUTPUT)
+        #git submodules init
+        execute_process(COMMAND git submodule update --remote --merge --init -- "tool_lib/${subdir}"
+          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} OUTPUT_VARIABLE OUTPUT)
       endif()
       subproject_version("tool_lib/${subdir}" subdir_version)#get the version
       message("${PREFIX_MSG}-- ${ColourBold}${Esc}[${color_code}m${EXEC_NAME}${ColourReset}: Adding ${ColourBold}tool${ColourReset} library ${ColourBold}${Esc}[${color_code2}m${subdir}${ColourReset} version: ${ColourBold}${subdir_version}${ColourReset}")
       add_subdirectory("tool_lib/${subdir}")
       
       get_directory_property(libname
-	DIRECTORY "tool_lib/${subdir}"
-	DEFINITION LIB_NAME)
+	    DIRECTORY "tool_lib/${subdir}"
+	    DEFINITION LIB_NAME)
       list(APPEND TOOL_LIBS "${libname}")
       link_directories(${CMAKE_SOURCE_DIR}/tool_lib/${subdir}/bin)    
     endforeach()
@@ -207,15 +233,21 @@ else ()
 
 
   ###### Create the executable ######
-  add_executable(${EXEC_NAME} ${MAIN_FILE})
-  target_link_libraries (${EXEC_NAME}
-    PUBLIC ${LIB_NAME}
-    PUBLIC ${TOOL_LIBS})
-  target_include_directories(${EXEC_NAME}
-    PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include"
-    PUBLIC ${EXTRA_INCLUDES}
-    )
-
+  #for each main file
+  foreach(MAIN_FILE ${MAIN_FILES})
+    #the name of the executable is the name of the project + the main file (without the "main" and extension)
+    get_filename_component(EXEC_NAME ${MAIN_FILE} NAME_WE)
+    #replace main with the project name
+    string(REPLACE "main" ${PROJECT_NAME} EXEC_NAME ${EXEC_NAME})
+    message("${PREFIX_MSG}-- ${ColourBold}${Esc}[${color_code}m${EXEC_NAME}${ColourReset} will be built")
+    add_executable(${EXEC_NAME} ${MAIN_FILE})
+    target_link_libraries (${EXEC_NAME}
+      PUBLIC ${LIB_NAME}
+      PUBLIC ${TOOL_LIBS})
+    target_include_directories(${EXEC_NAME}
+      PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+    
+  endforeach()
 
 
   ###### Instalation rule ######
